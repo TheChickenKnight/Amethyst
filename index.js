@@ -9,7 +9,7 @@ import { Writable } from 'stream';
 import Audio2TextJS from 'audio2textjs';
 import WebSocket from 'ws';
 global.WebSocket = WebSocket;
-import sss, { EdgeSpeechTTS } from '@lobehub/tts';
+import { EdgeSpeechTTS } from '@lobehub/tts';
 import { Buffer } from 'buffer';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -27,7 +27,6 @@ const converter = new Audio2TextJS({
     threads: 4,
     processors: 1,
     outputJson: true
-
 });
 
 const startRec = () => {
@@ -74,7 +73,7 @@ const handleSilence = async () => {
         await gpt.gpt.v1({
             messages,
             prompt: message,
-            model: "gpt-3.5-turbo",
+            model: "gpt-4",
             markdown: false
         }, async (err, data) => {
             if (err)
@@ -82,8 +81,8 @@ const handleSilence = async () => {
             console.log("GPT wrote: \n" + data.gpt);
             console.log("audio time");
             messages = messages.concat([
-                { role: "user", message },
-                { role: "assistant", message: data.gpt }
+                { role: "user", content: message },
+                { role: "assistant", content: data.gpt }
             ]);
             writeFileSync('history.json', JSON.stringify({ messages }, null, 2));
             const filename = await resToAudio(data.gpt);
