@@ -5,8 +5,8 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 import mic from 'mic';
 import { createWriteStream, writeFileSync, unlinkSync } from 'fs';
-import sound from 'sound-play';
-const gpt = require('gpti');
+import { play } from 'sound-play';
+import {LlamaModel, LlamaContext, LlamaChatSession} from "node-llama-cpp";
 import { Writer } from 'wav';
 import { Writable } from 'stream';
 import Audio2TextJS from 'audio2textjs';
@@ -17,7 +17,7 @@ import { Buffer } from 'buffer';
 import path from 'path';
 import dotenv from 'dotenv';
 const history = require('./history.json');
-let messages = history.messages;
+let conversationHistory = history.conversationHistory;
 dotenv.config();
 let micInstance;
 let micInputStream;
@@ -31,6 +31,12 @@ const converter = new Audio2TextJS({
     processors: 1,
     outputJson: true
 });
+
+const model = new LlamaModel({
+    modelPath: path.join(__dirname, "models", "MODELFILENAME")
+});
+const context = new LlamaContext({model});
+const session = new LlamaChatSession({context, conversationHistory});
 
 const startRec = () => {
     console.log("Starting rec.");
@@ -70,29 +76,18 @@ const handleSilence = async () => {
     unlinkSync(path.join(__dirname, filename));
     unlinkSync(filename + ".OUTPUT.wav");
     unlinkSync(filename + ".OUTPUT.wav.json");
-    let message = output.transcription[0].text;
-    if (!message.includes("BLANK_AUDIO")) {
-        console.log("You said: " + message);
-        await gpt.gpt.v1({
-            messages,
-            prompt: message,
-            model: "gpt-4",
-            markdown: false
-        }, async (err, data) => {
-            if (err)
-                return console.error(err);
-            console.log("GPT wrote: \n" + data.gpt);
-            console.log("audio time");
-            messages = messages.concat([
-                { role: "user", content: message },
-                { role: "assistant", content: data.gpt }
-            ]);
-            writeFileSync('history.json', JSON.stringify({ messages }, null, 2));
-            const filename = await resToAudio(data.gpt);
-            await sound.play(path.join(__dirname, filename));
-            unlinkSync(filename);
-            console.log("audio time done");
-        });
+    let prompt = output.transcription[0].text;
+    if (!prompt.includes("BLANK_AUDIO")) {
+        console.log("You said: " + prompt);
+        const response = await session.prompt(prompt);
+        console.log("GPT wrote: \n" + response);
+        conversationHistory.push({ prompt, response })
+        writeFileSync('history.json', JSON.stringify({ conversationHistory }, null, 2));
+        console.log("audio time");
+        const filename = await resToAudio(response);
+        await play(path.join(__dirname, filename));
+        unlinkSync(filename);
+        console.log("audio time done");
     }
     startRec();
 }
