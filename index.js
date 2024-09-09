@@ -1,3 +1,6 @@
+//https://huggingface.co/TheBloke/neuronovo-7B-v0.3-GGUF
+//https://www.npmjs.com/package/node-llama-cpp
+
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 import mic from 'mic';
