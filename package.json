@@ -1,16 +1,17 @@
 {
   "type": "module",
   "dependencies": {
-    "@lobehub/tts": "^1.24.3",
-    "audio2textjs": "^1.0.5",
     "buffer": "^6.0.3",
     "dotenv": "^16.4.5",
     "mic": "^2.1.2",
+    "node-addon-api": "^8.1.0",
     "node-llama-cpp": "^2.8.16",
     "path": "^0.12.7",
+    "sherpa-onnx": "^1.10.25",
     "sound-play": "^1.1.0",
     "stream": "^0.0.3",
     "wav": "^1.0.2",
+    "wavefile": "^11.0.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
