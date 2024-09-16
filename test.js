@@ -95,10 +95,10 @@ const saveAudio = async audioChunks => {
 
     
 
-const modelPath = path.join(__dirname, "models", "TinySlime-1.1B-Chat-v1.0.Q2_K.gguf");
+const modelPath = path.join(__dirname, "models", "tinyllama.gguf");
 const model = new LlamaModel({modelPath});
 const context = new LlamaContext({model});
-const session = new LlamaChatSession({context});
+const session = new LlamaChatSession({context, conversationHistory});
 
 let micInstance = mic({
     rate: '24000',
@@ -117,18 +117,21 @@ micInputStream.pipe(new Writable({
 }));
 micInputStream.on('silence', async () => {
     micInstance.stop();
-    console.log("Writing audio to disk...");
+    if (audioChunks.length <= 6)
+        return;
     const filename = await saveAudio(audioChunks);
-    console.log("Audio Saved!\nProcessing Audio...");
     setTimeout(async () => {
-        let prompt = await STT(filename);
+        const prompt = await STT(filename);
+        unlinkSync('./audio/' + filename);
+        console.log("You said: " + prompt);
+        console.log("length: " + audioChunks.length)
         if (!prompt.includes('[')) {
             const response = await session.prompt(prompt);
             conversationHistory.push({ prompt, response });
-            console.log("Done! GPT wrote:\n" + response);
-            console.log("Synthesizing and playing audio...");
+            writeFileSync('history.json', JSON.stringify({ conversationHistory }, null, 2));
             const filename = await TTS(response);
             await play(path.join(__dirname, filename));
+            unlinkSync(filename); 
         } else
             console.log("No Text was found in audio.");
         console.log("---------------------------------------------------------------");
