@@ -71,7 +71,9 @@ const handleSilence = async () => {
         console.log("Audio Processed!");
         console.log("You said:\n" + prompt + "\nGenerating response...");
         if (!prompt.includes('[')) {
-            let response = await SynRes(prompt);
+            const response = await session.prompt(prompt);
+            conversationHistory.push({ prompt, response });
+            writeFileSync('history.json', JSON.stringify({ conversationHistory }, null, 2));
             console.log("Done! GPT wrote:\n" + response);
             console.log("Synthesizing and playing audio...");
             const filename = await TTS(response);
@@ -119,17 +121,10 @@ const STT = async filename => {
     return res.text;
 }
 
-const modelPath = path.join(__dirname, "models", "unholy-v2-13b.Q2_K.gguf");
+const modelPath = path.join(__dirname, "models", "TinySlime-1.1B-Chat-v1.0.Q2_K.gguf");
 const model = new LlamaModel({modelPath});
 const context = new LlamaContext({model});
 const session = new LlamaChatSession({context, conversationHistory});
-
-const SynRes = async prompt => {
-    const response = await session.prompt(prompt);
-    conversationHistory.push({ prompt, response });
-    writeFileSync('history.json', JSON.stringify({ conversationHistory }, null, 2));
-    return response;
-};
 
 const tts = sherpa_onnx.createOfflineTts({
     offlineTtsModelConfig: {
