@@ -1,21 +1,13 @@
-import sherpa_onnx from "sherpa-onnx";
+import path from 'path';
+import {LlamaModel, LlamaContext, LlamaChatSession} from "node-llama-cpp";
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+    
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Copyright (c)  2023-2024  Xiaomi Corporation (authors: Fangjun Kuang)
+const modelPath = path.join(__dirname, "models", "unholy-v2-13b.Q2_K.gguf");
+const model = new LlamaModel({modelPath});
+const context = new LlamaContext({model});
+const session = new LlamaChatSession({context});
 
-
-
-for (let i = 0; i < 10; i++) {
-    const audio = tts.generate({
-        text:
-            '“Today as always, men fall into two groups: slaves and free men. Whoever does not have two-thirds of his day for himself, is a slave, whatever he may be: a statesman, a businessman, an official, or a scholar.”',
-        sid: 0,
-        speed: 1
-      });
-      
-      tts.save('./' + Date.now() + '.wav', audio);
-      tts.free();
-}
-
-
-console.log('Saved to test-en.wav successfully.');
-
+session.prompt("hello").then(console.log)
