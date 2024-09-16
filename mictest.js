@@ -1,6 +1,3 @@
-//https://huggingface.co/TheBloke/neuronovo-7B-v0.3-GGUF
-//https://www.npmjs.com/package/node-llama-cpp
-
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
@@ -31,69 +28,55 @@ let conversationHistory = history.conversationHistory;
 
 let micInstance;
 let micInputStream;
-let isRec = false;
-let audioChunks;
-
-
-
-/*var twirlTimer = (function() {
-    var P = ["\\", "|", "/", "-"];
-    var x = 0;
-    return setInterval(function() {
-      process.stdout.write("\r" + P[x++]);
-      x &= 3;
-    }, 250);
-  })();*/
+let isRecording = false;
+let audioChunks = [];
 
 const startRec = () => {
-    console.log("Listening...");
-    if(micInstance) {
+    if (micInstance) {
         micInstance.stop();
         micInputStream.unpipe();
     }
     micInstance = mic({
         rate: '24000',
         channels: '1',
-        debug: false,
-        exitOnSilence: 10
+        debug: true,
+        exitOnSilence: 5
     });
     micInputStream = micInstance.getAudioStream();
     audioChunks = [];
-    isRec = true;
+    isRecording = true;
     micInputStream.pipe(new Writable({
         write(chunk, _, callback) {
-            if (isRec)
+            if (isRecording)
                 audioChunks.push(chunk);
             callback();
         }
     }));
     micInputStream.on('silence', handleSilence);
     micInstance.start();
-};
+}
 
 const handleSilence = async () => {
     console.log("Done Listening!");
-    if (!isRec)
+    if (!isRecording)
         return;
-    isRec = false;
+    isRecording = false;
     micInstance.stop();
     console.log("Writing audio to disk...");
     const filename = await saveAudio(audioChunks);
     console.log("Audio Saved!\nProcessing Audio...");
-    setTimeout(async () => {   
+    setTimeout(async () => {
         let prompt = await STT(filename);
+        unlinkSync('./audio/' + filename);
         console.log("Audio Processed!");
-        [filename].forEach(unlinkSync);
-        if (prompt) {
-            console.log("You said:\n" + prompt + "\nGenerating response...");
-            //let response = await SynRes(prompt);
-            let response = "hello."
+        console.log("You said:\n" + prompt + "\nGenerating response...");
+        if (!prompt.includes('[')) {
+            let response = await SynRes(prompt);
             console.log("Done! GPT wrote:\n" + response);
             console.log("Synthesizing and playing audio...");
             const filename = await TTS(response);
             await play(path.join(__dirname, filename));
             unlinkSync(filename);
-            console.log("audio");
         } else
             console.log("No Text was found in audio.");
         console.log("---------------------------------------------------------------");
@@ -120,7 +103,7 @@ const recognizer = sherpa_onnx.createOfflineRecognizer({
         whisper: {
             encoder: './models/sherpa-onnx-whisper-tiny.en/tiny.en-encoder.int8.onnx',
             decoder: './models/sherpa-onnx-whisper-tiny.en/tiny.en-decoder.int8.onnx',
-            language: '',
+            language: 'en',
             task: 'transcribe',
             tailPaddings: -1,
         },
@@ -128,15 +111,15 @@ const recognizer = sherpa_onnx.createOfflineRecognizer({
     }
 })
 const stream = recognizer.createStream();
-
-const STT = filename => {
-    const wave = sherpa_onnx.readWave(filename);
+const STT = async filename => {
+    const wave = sherpa_onnx.readWave('./audio/' + filename);
     stream.acceptWaveform(wave.sampleRate, wave.samples);
     recognizer.decode(stream);
-    return recognizer.getResult(stream).text;
+    const res = await recognizer.getResult(stream);
+    return res.text;
 }
 
-const modelPath = path.join(__dirname, "models", "neuronovo-7b-v0.3.Q2_K.gguf");
+const modelPath = path.join(__dirname, "models", "TinySlime-1.1B-Chat-v1.0.Q2_K.gguf");
 const model = new LlamaModel({modelPath});
 const context = new LlamaContext({model});
 const session = new LlamaChatSession({context, conversationHistory});
@@ -164,7 +147,6 @@ const tts = sherpa_onnx.createOfflineTts({
       },
     maxNumSentences: 1,
   });
-  
 
 const TTS = async text => {
     const filename = './out/' + Date.now() + '.wav';
