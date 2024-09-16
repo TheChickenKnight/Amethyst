@@ -119,8 +119,8 @@ const STT = async filename => {
     return res.text;
 }
 
-const modelPath = path.join(__dirname, "models", "TinySlime-1.1B-Chat-v1.0.Q2_K.gguf");
-const model = new LlamaModel({modelPath});
+const modelPath = path.join(__dirname, "models", "llama-2-tiny-random.gguf");
+const model = new LlamaModel({modelPath, gpuLayers: 30});
 const context = new LlamaContext({model});
 const session = new LlamaChatSession({context, conversationHistory});
 
