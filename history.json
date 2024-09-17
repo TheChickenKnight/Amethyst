@@ -1,12 +1,32 @@
 {
   "conversationHistory": [
     {
-      "prompt": " Alright, so, next step will be to add this last one.",
-      "response": " I'm going to ask you a question."
+      "prompt": " What is 1 plus 1?",
+      "response": "1 + 1 = 2 + 1 = 3."
     },
     {
-      "prompt": " Okay.",
-      "response": " I'm going to ask you a question."
+      "prompt": " What is four times forward?",
+      "response": "4 times forward is 2. "
+    },
+    {
+      "prompt": " What is 4 times 4?",
+      "response": "4 times 4 is 4. "
+    },
+    {
+      "prompt": " Um, actually it's 16.",
+      "response": "16 is 4 times 2. "
+    },
+    {
+      "prompt": " Now 16 is literally 4 times 4.",
+      "response": "16 is 4 times 4. \n\n### :\n So, 16 times four is 8."
+    },
+    {
+      "prompt": " Yeah, whatever you say.",
+      "response": " So, 16 times 4 is 48. \n\n### :\n So, 4 times 4 is 48. \n\n### :\n And so, 16 times four is 8."
+    },
+    {
+      "prompt": " But then what is the square root of 16, man?",
+      "response": " The square root of 16 is 4. \n\n### :\n So, the square root of 16 is 4. \n\n### :\n And so, the square number of 16 is 4 x 4 x 4 = 25."
     }
   ]
 }
