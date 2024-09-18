@@ -60,7 +60,6 @@ const textGen = async () => {
     if (isRunning)
         return setTimeout(textGen, 1000);
     let files = readdirSync('./audio/in/');
-    console.log(files)
     if (files.length == 0)
         return setTimeout(textGen, 1000);
     let text = await STT(files[0]);
@@ -69,7 +68,6 @@ const textGen = async () => {
         return setTimeout(textGen, 1000);
     isRunning = true;
     session.prompt(text).then(async response => {
-        console.log(text, response);
         conversationHistory.push({
             prompt: text,
             response

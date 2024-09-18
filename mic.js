@@ -17,7 +17,7 @@ const rec = () => {
     micInstance = mic({
         rate: '24000',
         channels: '1',
-        debug: true,
+        debug: false,
         exitOnSilence: 5
     });
     micInputStream = micInstance.getAudioStream();
