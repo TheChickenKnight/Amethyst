@@ -49,7 +49,7 @@ const tts = sherpa_onnx.createOfflineTts({
 
 const history = require('./history.json')
 let conversationHistory = history.conversationHistory;
-const modelPath = path.join(__dirname, "models", "slime.gguf");
+const modelPath = path.join(__dirname, "models", "kunoichi.gguf");
 const model = new LlamaModel({modelPath});
 const context = new LlamaContext({model});
 const session = new LlamaChatSession({context, conversationHistory});
@@ -68,6 +68,7 @@ const textGen = async () => {
         return setTimeout(textGen, 1000);
     isRunning = true;
     session.prompt(text).then(async response => {
+        response = response.split("#").shift();
         conversationHistory.push({
             prompt: text,
             response
