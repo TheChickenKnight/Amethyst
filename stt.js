@@ -1,9 +1,13 @@
 import { readdirSync, writeFileSync, unlinkSync, readFileSync } from 'fs';
+import sherpa_onnx from 'sherpa-onnx';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-import sherpa_onnx from 'sherpa-onnx';
-
-let prompts = [];
+import path from 'path';
+import {LlamaModel, LlamaContext, LlamaChatSession} from "node-llama-cpp";
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+    
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const recognizer = sherpa_onnx.createOfflineRecognizer({
     modelConfig:{
@@ -26,18 +30,37 @@ const STT = async filename => {
     return res.text;
 }
 
-setInterval(async () => {
+const history = require('./history.json')
+let conversationHistory = history.conversationHistory;
+const modelPath = path.join(__dirname, "models", "hamster.gguf");
+const model = new LlamaModel({modelPath});
+const context = new LlamaContext({model});
+const session = new LlamaChatSession({context, conversationHistory});
+
+var isRunning = false;
+
+const textGen = async () => {
+    if (isRunning)
+        return setTimeout(textGen, 1000);
     let files = readdirSync('./audio/');
     if (files.length == 0)
-        return;
+        return setTimeout(textGen, 1000);
     let text = await STT(files[0]);
     unlinkSync('./audio/' + files[0]);
     if (text.includes('['))
-        return;
-    prompts = readFileSync('./prompts.txt', { encoding: 'utf8', flag: 'r' }).split('\n');
-    if (prompts[0] == "")
-        prompts = [];
-    prompts.push(text);
-    writeFileSync('prompts.txt', prompts.join('\n'), null, 2);
-    console.log(prompts);
-}, 1000);
+        return setTimeout(textGen, 1000);
+    isRunning = true;
+    session.prompt(text).then(async response => {
+        console.log(text, response);
+        conversationHistory.push({
+            prompt: text,
+            response
+        });
+        writeFileSync('history.json', JSON.stringify({ conversationHistory }, null, 2));
+        isRunning = false;
+        await textGen();
+    });
+};
+
+textGen();
+process.stdin.resume();
