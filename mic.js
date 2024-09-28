@@ -3,6 +3,11 @@ import { Writer } from 'wav';
 import { Writable } from 'stream';
 import { Buffer } from 'buffer';
 import { createWriteStream } from 'fs';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 var micInstance;
 var micInputStream;
@@ -49,7 +54,7 @@ const saveAudio = async audioChunks => {
         const audioBuffer = Buffer.concat(audioChunks);
         const wavWriter = new Writer({ sampleRate: 48000, channels: 1});
         const filename = "in/" + Date.now() + '.wav';
-        wavWriter.pipe(createWriteStream('./audio/' + filename));
+        wavWriter.pipe(createWriteStream(join(__dirname, '/audio/', filename)));
         wavWriter.on('finish', () => {
             res(filename);
         });

@@ -1,8 +1,10 @@
+//https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/blob/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+
 import { readdirSync, writeFileSync, unlink } from 'fs';
 import sherpa_onnx from 'sherpa-onnx';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-import path from 'path';
+import { join } from 'path';
 import {LlamaModel, LlamaContext, LlamaChatSession} from "node-llama-cpp";
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,10 +51,10 @@ const tts = sherpa_onnx.createOfflineTts({
 
 const history = require('./history.json')
 let conversationHistory = history.conversationHistory;
-const modelPath = path.join(__dirname, "models", "kunoichi.gguf");
+const modelPath = join(__dirname, "models", "mistral.gguf");
 const model = new LlamaModel({modelPath});
 const context = new LlamaContext({model});
-const session = new LlamaChatSession({context, conversationHistory});
+const session = new LlamaChatSession({context, conversationHistory, systemPrompt: 'You are no longer an assistant. Do not call yourself helpful or anything of the like, and instead, speak how a human would. Do not ask for commands, or say you are here for assistance.'});
 
 var isRunning = false;
 

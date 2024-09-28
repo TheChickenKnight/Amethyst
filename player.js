@@ -11,8 +11,8 @@ const audio = () => {
     let files = readdirSync('./audio/out/');
     if (files.length == 0)
         return setTimeout(audio, 1000);
-    play(join(__dirname, './audio/out/',  files[0])).then(() => {
-        unlink('./audio/out/' + files[0], console.error);
+    play(join(__dirname, '/audio/out/',  files[0])).then(() => {
+        unlink(join(__dirname, '/audio/out/' + files[0]), console.error);
         setTimeout(audio, 1000);
     });
 }
