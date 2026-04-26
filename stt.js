@@ -14,8 +14,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const recognizer = sherpa_onnx.createOfflineRecognizer({
     modelConfig:{
         whisper: {
-            encoder: './models/sherpa-onnx-whisper-tiny.en/tiny.en-encoder.int8.onnx',
-            decoder: './models/sherpa-onnx-whisper-tiny.en/tiny.en-decoder.int8.onnx',
+            encoder: './models/sherpa-onnx-whisper-tiny.en/tiny.en-encoder.onnx',
+            decoder: './models/sherpa-onnx-whisper-tiny.en/tiny.en-decoder.onnx',
             language: 'en',
             task: 'transcribe',
             tailPaddings: -1,
@@ -49,7 +49,7 @@ const tts = sherpa_onnx.createOfflineTts({
     maxNumSentences: 1,
 });
 
-const history = require('./history.json')
+const history = require('./history.json');
 let conversationHistory = history.conversationHistory;
 const modelPath = join(__dirname, "models", "mistral.gguf");
 const model = new LlamaModel({modelPath});
@@ -66,8 +66,10 @@ const textGen = async () => {
         return setTimeout(textGen, 1000);
     let text = await STT(files[0]);
     await unlink('./audio/in/' + files[0], console.error);
-    if (text.includes('['))
+    console.log("Recognized text:", text);
+    if (text.includes('[') )//|| !text.toLowerCase().includes("amethyst"))
         return setTimeout(textGen, 1000);
+    text = text.replace(/amethyst/gi, '').trim();
     isRunning = true;
     session.prompt(text).then(async response => {
         response = response.split("#").shift();

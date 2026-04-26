@@ -23,7 +23,8 @@ const rec = () => {
         rate: '24000',
         channels: '1',
         debug: true,
-        exitOnSilence: 5
+        exitOnSilence: 5,
+        device: 'Elgato Wave:3'  // Replace with your preferred microphone
     });
     micInputStream = micInstance.getAudioStream();
     audioChunks = [];
